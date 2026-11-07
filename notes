@@ -1,5 +1,0 @@
-git add .
-git status --short
-git commit -m "Prepare Tree Flipper for Render"
-git remote add origin https://github.com/ankan2526/Tree-Flipper.git
-git push -u origin main
