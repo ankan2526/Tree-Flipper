@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #030712;
+    color: #f8fafc;
+  }
+}
+
+/* Custom Tree Animations & Visual Glows */
+@keyframes pulseGlowRed {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(239, 68, 68, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(239, 68, 68, 0.9));
+  }
+}
+
+@keyframes pulseGlowBlue {
+  0%, 100% {
+    filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 18px rgba(59, 130, 246, 0.9));
+  }
+}
+
+.node-red {
+  fill: #ef4444;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.node-red:hover {
+  filter: drop-shadow(0 0 12px rgba(239, 68, 68, 0.8));
+}
+
+.node-blue {
+  fill: #3b82f6;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.node-blue:hover {
+  filter: drop-shadow(0 0 12px rgba(59, 130, 246, 0.8));
+}
+

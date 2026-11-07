@@ -1,0 +1,42 @@
+services:
+  # -------------------------------------------------------------
+  # 1. Backend Web Service (Render Free Web Service Tier)
+  # -------------------------------------------------------------
+  - type: web
+    name: tree-flipper-api
+    env: python
+    plan: free
+    region: oregon # or frankfurt, ohio, singapore
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.8
+      - key: ADMIN_KEY
+        generateValue: true # Or define custom secret key
+      - key: DATABASE_URL
+        sync: false # Set this in Render dashboard using your free Neon DB connection string
+      - key: CORS_ORIGINS
+        value: "*"
+
+  # -------------------------------------------------------------
+  # 2. Frontend Static Site (Render Free Static Site Tier)
+  # -------------------------------------------------------------
+  - type: static-site
+    name: tree-flipper-web
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: tree-flipper-api
+          property: host
+
