@@ -23,7 +23,7 @@ services:
   # -------------------------------------------------------------
   # 2. Frontend Static Site (Render Free Static Site Tier)
   # -------------------------------------------------------------
-  - type: static-site
+  - type: static
     name: tree-flipper-web
     plan: free
     rootDir: frontend
@@ -39,4 +39,3 @@ services:
           type: web
           name: tree-flipper-api
           property: host
-
