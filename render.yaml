@@ -14,7 +14,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.8
       - key: ADMIN_KEY
-        generateValue: true # Or define custom secret key
+        sync: false # Set this in Render dashboard to a random string for security
       - key: DATABASE_URL
         sync: false # Set this in Render dashboard using your free Neon DB connection string
       - key: CORS_ORIGINS
