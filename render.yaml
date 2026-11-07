@@ -4,7 +4,7 @@ services:
   # -------------------------------------------------------------
   - type: web
     name: tree-flipper-api
-    env: python
+    runtime: python
     plan: free
     region: oregon # or frankfurt, ohio, singapore
     rootDir: backend
@@ -23,12 +23,13 @@ services:
   # -------------------------------------------------------------
   # 2. Frontend Static Site (Render Free Static Site Tier)
   # -------------------------------------------------------------
-  - type: static
+  - type: web
     name: tree-flipper-web
+    runtime: static
     plan: free
     rootDir: frontend
     buildCommand: npm install && npm run build
-    publishDir: dist
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
