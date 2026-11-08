@@ -63,6 +63,22 @@ export async function fetchLevels() {
   return levels;
 }
 
+export async function verifyAdminKey(adminKey) {
+  const res = await fetch(`${API_BASE}/admin/verify`, {
+    method: 'POST',
+    headers: {
+      'X-Admin-Key': adminKey,
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    const error = new Error(errorData.detail || `Admin key verification failed: ${res.statusText}`);
+    error.status = res.status;
+    throw error;
+  }
+  return res.json();
+}
+
 export async function fetchLevelById(id) {
   const res = await fetch(`${API_BASE}/levels/${id}`);
   if (!res.ok) {

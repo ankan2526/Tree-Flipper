@@ -85,6 +85,9 @@ pip install -r requirements.txt
 # Copy environment variables
 cp .env.example .env
 
+# Generate a random admin key, then set it as ADMIN_KEY in backend/.env
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
 # Run FastAPI server (runs on http://localhost:8000 by default)
 uvicorn main:app --reload --port 8000
 ```
@@ -127,7 +130,7 @@ Visit **http://localhost:3000** in your browser. The Vite proxy forwards `/api` 
 3. Select your repository. Render will automatically read `render.yaml` and configure both the backend and frontend.
 4. When prompted for environment variables:
    - `DATABASE_URL`: Paste your Neon Postgres connection string.
-   - `ADMIN_KEY`: Set your secret admin passcode.
+   - `ADMIN_KEY`: The Blueprint generates a secret automatically. If configuring it manually, use a unique random value.
 5. Click **Apply**. Render will deploy both services on free tiers!
 
 ### Option B: Manual Setup on Render
@@ -148,6 +151,8 @@ Visit **http://localhost:3000** in your browser. The Vite proxy forwards `/api` 
    - Environment Variable:
      - `VITE_API_URL`: `https://your-backend-service.onrender.com/api`
      - A bare backend hostname is also accepted; the frontend adds `https://` and `/api`.
+
+The backend requires `ADMIN_KEY` and refuses to start if it is missing, blank, or set to the old public default. The admin screen verifies the key with the backend before opening, and rechecks a key saved in the browser when the screen is reopened.
 
 ---
 

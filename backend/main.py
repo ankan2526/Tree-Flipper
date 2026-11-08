@@ -105,6 +105,10 @@ def root():
 def health_check():
     return {"status": "ok"}
 
+@app.post("/api/admin/verify")
+def verify_admin_access(_admin: str = Depends(verify_admin_key)):
+    return {"authenticated": True}
+
 @app.get("/api/levels", response_model=List[LevelSummary])
 def get_levels(db: Session = Depends(get_db)):
     """Public — list all levels with summary stats."""

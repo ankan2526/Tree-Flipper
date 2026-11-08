@@ -5,6 +5,7 @@ import {
   createLevel,
   updateLevel,
   deleteLevel,
+  verifyAdminKey,
 } from '../utils/api';
 import TreeView from './TreeView';
 import { generateId } from '../utils/treeUtils';
@@ -29,6 +30,7 @@ const INITIAL_COLORS = { root: 'blue' };
 export default function AdminDashboard({ onExit }) {
   const [adminKey, setAdminKey]           = useState(() => localStorage.getItem('tf_admin_key') || '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authenticating, setAuthenticating] = useState(false);
   const [levels, setLevels]               = useState([]);
   const [loading, setLoading]             = useState(false);
   const [statusMsg, setStatusMsg]         = useState(null);
@@ -43,23 +45,75 @@ export default function AdminDashboard({ onExit }) {
   const [editorMode, setEditorMode]       = useState('add');  // 'add' | 'color'
 
   // ── Auth ──────────────────────────────────────────────────────────────────
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (!adminKey.trim()) return;
-    localStorage.setItem('tf_admin_key', adminKey.trim());
-    setIsAuthenticated(true);
-    loadLevels();
+    const key = adminKey.trim();
+    if (!key) return;
+
+    try {
+      setAuthenticating(true);
+      setStatusMsg(null);
+      await verifyAdminKey(key);
+      localStorage.setItem('tf_admin_key', key);
+      setAdminKey(key);
+      setIsAuthenticated(true);
+      await loadLevels();
+    } catch (err) {
+      if (err.status === 401) {
+        localStorage.removeItem('tf_admin_key');
+        setIsAuthenticated(false);
+      }
+      setStatusMsg({
+        type: 'error',
+        text: err.status === 401
+          ? 'Invalid Admin Key. Please try again.'
+          : err.message || 'Unable to verify Admin Key.',
+      });
+    } finally {
+      setAuthenticating(false);
+    }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('tf_admin_key');
     setIsAuthenticated(false);
     setAdminKey('');
+    setStatusMsg(null);
   };
 
-  // Auto-login if key already cached
+  // Revalidate a cached key with the backend before restoring the admin session.
   useEffect(() => {
-    if (adminKey) { setIsAuthenticated(true); loadLevels(); }
+    let cancelled = false;
+    const cachedKey = localStorage.getItem('tf_admin_key')?.trim();
+    if (!cachedKey) return () => { cancelled = true; };
+
+    setAdminKey(cachedKey);
+    setAuthenticating(true);
+    verifyAdminKey(cachedKey)
+      .then(async () => {
+        if (cancelled) return;
+        setIsAuthenticated(true);
+        await loadLevels();
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err.status === 401) {
+          localStorage.removeItem('tf_admin_key');
+          setAdminKey('');
+        }
+        setIsAuthenticated(false);
+        setStatusMsg({
+          type: 'error',
+          text: err.status === 401
+            ? 'Saved Admin Key is invalid. Please enter the current key.'
+            : 'Unable to verify the saved Admin Key. Please try again.',
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setAuthenticating(false);
+      });
+
+    return () => { cancelled = true; };
   }, []);     // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Level list ────────────────────────────────────────────────────────────
@@ -198,19 +252,22 @@ export default function AdminDashboard({ onExit }) {
               type="password"
               value={adminKey}
               onChange={e => setAdminKey(e.target.value)}
-              placeholder="secret-admin-key"
+              placeholder="Enter your Admin Key"
               className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono text-sm"
               required
             />
-            <button type="submit"
+            <button type="submit" disabled={authenticating}
               className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition flex items-center justify-center gap-2">
-              <Unlock className="w-4 h-4" /> Authenticate
+              <Unlock className="w-4 h-4" /> {authenticating ? 'Verifying…' : 'Authenticate'}
             </button>
             <button type="button" onClick={onExit}
               className="w-full py-2 text-slate-400 hover:text-white text-xs font-semibold">
               Back to Game
             </button>
           </form>
+          {statusMsg?.type === 'error' && (
+            <p className="mt-4 text-xs text-rose-300" role="alert">{statusMsg.text}</p>
+          )}
         </div>
       </div>
     );
